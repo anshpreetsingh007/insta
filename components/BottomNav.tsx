@@ -1,3 +1,4 @@
+import Ionicons from '@expo/vector-icons/build/Ionicons';
 import { router } from 'expo-router';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -12,7 +13,7 @@ export default function BottomNav() {
         <Text style={styles.navIcon}>⌕</Text>
       </Pressable>
       <Pressable onPress={() => router.replace('/send')}>
-        <Text style={styles.navIcon}>＋</Text>
+         <Ionicons name="paper-plane-outline" size={24} color="black" />
       </Pressable>
       <Pressable onPress={() => router.replace('/reels')}>
         <Text style={styles.navIcon}>▶</Text>

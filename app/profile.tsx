@@ -1,49 +1,42 @@
-// app/group-profile.tsx
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
-import {
-    FlatList,
-    Image,
-    Platform,
-    Pressable,
-    SafeAreaView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    View,
-} from "react-native";
+import { FlatList, Image, Platform, Pressable, SafeAreaView, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import BottomNav from "../components/BottomNav";
+import { router } from "expo-router";
+import { setPosts } from "../lib/postStore";
 
 type GridItem = { id: string; uri: string };
 
-export default function GroupProfileScreen() {
+export default function ProfileScreen() {
   const [role, setRole] = useState<"Member" | "Admin">("Member");
 
   const data: GridItem[] = useMemo(
     () =>
-      Array.from({ length: 12 }).map((_, i) => ({
+      Array.from({ length: 30 }).map((_, i) => ({
         id: String(i + 1),
-        uri: `https://picsum.photos/seed/group-${i + 1}/600/600`,
+        uri: `https://picsum.photos/seed/profile-${i + 1}/800/800`,
       })),
     []
   );
 
-  const renderItem = ({ item }: { item: GridItem }) => (
-    <Pressable style={styles.gridItem} onPress={() => {}}>
-      <Image source={{ uri: item.uri }} style={styles.gridImage} />
-    </Pressable>
+  const posts = useMemo(
+    () =>
+      data.map((x) => ({
+        id: x.id,
+        uri: x.uri,
+        username: "ootd_everyday",
+        location: "OOTD Everyday",
+        caption: "Fit check! 🧢 You know we’ll hype you up.",
+      })),
+    [data]
   );
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Header */}
       <View style={styles.header}>
-        <Pressable
-          style={styles.headerIcon}
-          onPress={() => router.replace("/")}
-        >
+        <Pressable style={styles.headerIcon} onPress={() => router.replace("/")}>
           <Ionicons name="chevron-back" size={22} color="#111" />
         </Pressable>
 
@@ -54,7 +47,6 @@ export default function GroupProfileScreen() {
         </Pressable>
       </View>
 
-      {/* Top block */}
       <View style={styles.topBlock}>
         <View style={styles.row}>
           <View style={styles.avatar}>
@@ -83,39 +75,27 @@ export default function GroupProfileScreen() {
         </Pressable>
       </View>
 
-      {/* Grid */}
       <FlatList
         data={data}
         keyExtractor={(it) => it.id}
-        renderItem={renderItem}
         numColumns={3}
         columnWrapperStyle={styles.gridRow}
         contentContainerStyle={styles.gridContent}
         showsVerticalScrollIndicator={false}
+        renderItem={({ item, index }) => (
+          <Pressable
+            style={styles.gridItem}
+            onPress={() => {
+              setPosts(posts);
+              router.push({ pathname: "/page", params: { index: String(index) } });
+            }}
+          >
+            <Image source={{ uri: item.uri }} style={styles.gridImage} />
+          </Pressable>
+        )}
       />
 
-      {/* Bottom navigation */}
-      <View style={styles.bottomNav}>
-        <Pressable onPress={() => router.replace("/")}>
-          <Text style={styles.navIcon}>⌂</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/search")}>
-          <Text style={styles.navIcon}>⌕</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/send")}>
-          <Text style={styles.navIcon}>＋</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/reels")}>
-          <Text style={styles.navIcon}>▶</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/profile")}>
-          <Text style={styles.navIcon}>●</Text>
-        </Pressable>
-      </View>
+      <BottomNav />
     </SafeAreaView>
   );
 }
@@ -146,31 +126,11 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#E6E6E6",
   },
-  headerIcon: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 22,
-  },
-  headerTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111",
-  },
+  headerIcon: { width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 22 },
+  headerTitle: { flex: 1, textAlign: "center", fontSize: 16, fontWeight: "700", color: "#111" },
 
-  topBlock: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 10,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-  },
+  topBlock: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 10 },
+  row: { flexDirection: "row", alignItems: "center", gap: 14 },
 
   avatar: {
     width: 66,
@@ -182,52 +142,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     backgroundColor: "#EAF1FF",
   },
-  avatarText: {
-    fontWeight: "800",
-    color: "#2F7BFF",
-    fontSize: 14,
-    letterSpacing: 0.5,
-  },
+  avatarText: { fontWeight: "800", color: "#2F7BFF", fontSize: 14, letterSpacing: 0.5 },
 
-  stats: {
-    flex: 1,
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  stat: {
-    alignItems: "center",
-    minWidth: 70,
-  },
-  statValue: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#111",
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#6B6B6B",
-    marginTop: 2,
-  },
+  stats: { flex: 1, flexDirection: "row", justifyContent: "space-around" },
+  stat: { alignItems: "center", minWidth: 70 },
+  statValue: { fontSize: 16, fontWeight: "800", color: "#111" },
+  statLabel: { fontSize: 12, color: "#6B6B6B", marginTop: 2 },
 
-  nameBlock: {
-    marginTop: 10,
-  },
-  groupName: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: "#111",
-  },
-  tagline: {
-    marginTop: 4,
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#111",
-  },
-  subTagline: {
-    marginTop: 2,
-    fontSize: 13,
-    color: "#444",
-  },
+  nameBlock: { marginTop: 10 },
+  groupName: { fontSize: 16, fontWeight: "800", color: "#111" },
+  tagline: { marginTop: 4, fontSize: 13, fontWeight: "600", color: "#111" },
+  subTagline: { marginTop: 2, fontSize: 13, color: "#444" },
 
   roleButton: {
     marginTop: 10,
@@ -242,43 +167,10 @@ const styles = StyleSheet.create({
     borderColor: "#E6E6E6",
     backgroundColor: "#fff",
   },
-  roleButtonText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#111",
-  },
+  roleButtonText: { fontSize: 13, fontWeight: "700", color: "#111" },
 
-  // IMPORTANT: extra bottom padding so the grid doesn't get hidden behind the nav bar
-  gridContent: {
-    paddingBottom: 58 + 16,
-  },
-  gridRow: {
-    gap: GAP,
-    paddingHorizontal: GAP,
-  },
-  gridItem: {
-    flex: 1,
-    aspectRatio: 1,
-    marginBottom: GAP,
-    borderRadius: 2,
-    overflow: "hidden",
-    backgroundColor: "#F2F2F2",
-  },
-  gridImage: {
-    width: "100%",
-    height: "100%",
-  },
-
-  bottomNav: {
-    height: 58,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    backgroundColor: "#fff",
-  },
-  navIcon: {
-    fontSize: 22,
-  },
+  gridContent: { paddingBottom: 58 + 16 },
+  gridRow: { gap: GAP, paddingHorizontal: GAP },
+  gridItem: { flex: 1, aspectRatio: 1, marginBottom: GAP, borderRadius: 2, overflow: "hidden", backgroundColor: "#F2F2F2" },
+  gridImage: { width: "100%", height: "100%" },
 });
