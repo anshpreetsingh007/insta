@@ -1,223 +1,179 @@
-// app/index.tsx
-import { router } from "expo-router";
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
-    Alert,
-    Image,
-    Platform,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    Text,
-    View,
+  Dimensions,
+  FlatList,
+  Image,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  Pressable,
+  SafeAreaView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { getPosts, Post } from "../lib/postStore";
 
-export default function HomeScreen() {
+const { width } = Dimensions.get("window");
+
+export default function PostViewer() {
+  const { index } = useLocalSearchParams<{ index?: string }>();
+  const startIndex = Math.max(0, Number(index ?? 0) || 0);
+
+  const posts = useMemo(() => getPosts(), []);
+  const listRef = useRef<FlatList<Post>>(null);
+
+  const [activeIndex, setActiveIndex] = useState(startIndex);
+
+  useEffect(() => {
+    // Jump to tapped image
+    if (posts.length > 0) {
+      requestAnimationFrame(() => {
+        listRef.current?.scrollToIndex({ index: startIndex, animated: false });
+      });
+    }
+  }, [startIndex, posts.length]);
+
+  const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+    setActiveIndex(newIndex);
+  };
+
+  if (!posts || posts.length === 0) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <Text style={{ padding: 16 }}>No posts loaded.</Text>
+        <Pressable onPress={() => router.back()} style={{ padding: 16 }}>
+          <Text>Go back</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      {/* Top bar with back arrow and title */}
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Top bar (Instagram-style) */}
       <View style={styles.topBar}>
-        <Text style={styles.backIcon}>‹</Text>
+        <Pressable style={styles.topBtn} onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={26} color="#111" />
+        </Pressable>
 
-        <View style={styles.titleWrapper}>
-          <Text style={styles.headerUsername}>OOTD_EVERYDAY</Text>
-          <Text style={styles.headerTitle}>Posts</Text>
-        </View>
+        <Text style={styles.topTitle}>Posts</Text>
 
-        {/* Spacer to keep title centered */}
-        <View style={{ width: 24 }} />
+        <View style={styles.topBtn} />
       </View>
 
-      {/* Main scroll content */}
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* Post header */}
-        <View style={styles.postHeader}>
-          <View style={styles.postLeft}>
-            {/* Profile image */}
-            <Image
-              source={require("../assets/images/profile.png")}
-              style={styles.avatar}
-            />
+      {/* Swipeable posts */}
+      <FlatList
+        ref={listRef}
+        data={posts}
+        horizontal
+        pagingEnabled
+        keyExtractor={(item) => item.id}
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={onMomentumEnd}
+        getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
+        renderItem={({ item }) => <PostCard post={item} />}
+      />
 
-            <View>
-              <Text style={styles.postUsername}>ootd_everyday</Text>
-              <Text style={styles.location}>via frenchie_fry39</Text>
-            </View>
-          </View>
-
-          <Text style={styles.postMenu}>•••</Text>
-        </View>
-
-        {/* Post image */}
-        <Image
-          source={require("../assets/images/webdeb.png")}
-          style={styles.postImage}
-        />
-
-        {/* Actions row */}
-        <View style={styles.actionsRow}>
-          <View style={styles.actionsLeft}>
-            <Text style={styles.actionIcon}>♡</Text>
-            <Text style={styles.actionIcon}>🗨</Text>
-            <Text style={styles.actionIcon}>➢</Text>
-          </View>
-
-          <Text style={styles.bookmarkIcon}>🔖</Text>
-        </View>
-
-        {/* Likes */}
-        <View style={styles.likesRow}>
-          <View style={styles.likesAvatars}>
-            <Image
-              source={require("../assets/images/like1.jpg")}
-              style={styles.likeAvatar}
-            />
-            <Image
-              source={require("../assets/images/like2.jpg")}
-              style={styles.likeAvatarOverlap}
-            />
-            <Image
-              source={require("../assets/images/like3.jpg")}
-              style={styles.likeAvatarOverlap}
-            />
-          </View>
-
-          <Text style={styles.likesText}>
-            Liked by <Text style={styles.bold}>paisley.print.48</Text> and{" "}
-            <Text style={styles.bold}>7 others</Text>
-          </Text>
-        </View>
-
-        {/* Caption */}
-        <Text style={styles.caption}>
-          <Text style={styles.bold}>frenchie_fry39</Text> Fresh shot on a sunny
-          day! ✨
-        </Text>
-
-        {/* Comments */}
-        <Text style={styles.comments}>View all 12 comments</Text>
-
-        <Text style={styles.comment}>
-          <Text style={styles.bold}>lil_wyatt838</Text> Awesome tones
-        </Text>
-
-        <Text style={styles.comment}>
-          <Text style={styles.bold}>pia.in.a.pod</Text> Love it! ❤️
-        </Text>
-
-        <Text style={styles.time}>1 day ago</Text>
-      </ScrollView>
-
-      {/* Bottom navigation */}
-      <View style={styles.bottomNav}>
-        <Pressable onPress={() => router.replace("/")}>
-          <Text style={styles.navIcon}>⌂</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/search")}>
-          <Text style={styles.navIcon}>⌕</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/send")}>
-          <Text style={styles.navIcon}>＋</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/reels")}>
-          <Text style={styles.navIcon}>▶</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.replace("/profile")}>
-          <Text style={styles.navIcon}>●</Text>
-        </Pressable>
+      {/* Optional: dots indicator */}
+      <View style={styles.dots}>
+        {posts.slice(0, 12).map((_, i) => (
+          <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
+        ))}
       </View>
-
-      {/* Alert Button */}
-      <Pressable
-        style={styles.alertBtn}
-        onPress={() =>
-          Platform.OS === "web"
-            ? window.alert("Alert Button pressed")
-            : Alert.alert("Alert", "Alert Button pressed")
-        }
-      >
-        <Text style={styles.alertBtnText}>Alert</Text>
-      </Pressable>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
+function PostCard({ post }: { post: Post }) {
+  return (
+    <View style={{ width, backgroundColor: "#fff" }}>
+      {/* Post header */}
+      <View style={styles.postHeader}>
+        <View style={styles.postLeft}>
+          <Image
+            source={require("../assets/images/profile.png")}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.postUsername}>{post.username ?? "ootd_everyday"}</Text>
+            <Text style={styles.location}>{post.location ?? "via frenchie_fry39"}</Text>
+          </View>
+        </View>
+        <Ionicons name="ellipsis-horizontal" size={20} color="#111" />
+      </View>
 
-  scrollContent: {
-    paddingBottom: 20,
-  },
+      {/* Post image */}
+      <Image source={{ uri: post.uri }} style={styles.postImage} />
+
+      {/* Actions */}
+      <View style={styles.actionsRow}>
+        <View style={styles.actionsLeft}>
+          <Ionicons name="heart-outline" size={26} color="#111" />
+          <Ionicons name="chatbubble-outline" size={24} color="#111" />
+          <Ionicons name="paper-plane-outline" size={24} color="#111" />
+        </View>
+        <Ionicons name="bookmark-outline" size={24} color="#111" />
+      </View>
+
+      {/* Caption */}
+      <Text style={styles.caption}>
+        <Text style={styles.bold}>{post.username ?? "frenchie_fry39"}</Text>{" "}
+        {post.caption ?? "Fresh shot on a sunny day! ✨"}
+      </Text>
+
+      <View style={{ height: 40 }} />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#fff" },
 
   topBar: {
-    height: 56,
+    height: 52,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e5e5",
+    paddingHorizontal: 8,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: "#E6E6E6",
   },
-  backIcon: {
-    fontSize: 28,
-  },
-  titleWrapper: {
+  topBtn: {
+    width: 44,
+    height: 44,
     alignItems: "center",
+    justifyContent: "center",
   },
-  headerUsername: {
-    fontSize: 12,
-    color: "#777",
-  },
-  headerTitle: {
+  topTitle: {
+    flex: 1,
+    textAlign: "center",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
+    color: "#111",
   },
 
   postHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
   },
-  postLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 10,
-  },
-
-  postUsername: {
-    fontWeight: "600",
-  },
-  location: {
-    fontSize: 12,
-    color: "#666",
-  },
-  postMenu: {
-    fontSize: 20,
-    letterSpacing: 2,
-  },
+  postLeft: { flexDirection: "row", alignItems: "center" },
+  avatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
+  postUsername: { fontWeight: "700", color: "#111" },
+  location: { fontSize: 12, color: "#666", marginTop: 1 },
 
   postImage: {
     width: "100%",
-    height: 380,
+    height: 420,
     resizeMode: "cover",
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#eee",
   },
 
   actionsRow: {
@@ -227,95 +183,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
   },
-  actionsLeft: {
+  actionsLeft: { flexDirection: "row", gap: 14 },
+
+  caption: { paddingHorizontal: 12, fontSize: 14, color: "#111" },
+  bold: { fontWeight: "700" },
+
+  dots: {
+    position: "absolute",
+    bottom: 10,
+    width: "100%",
     flexDirection: "row",
-  },
-  actionIcon: {
-    fontSize: 22,
-    marginRight: 14,
-  },
-  bookmarkIcon: {
-    fontSize: 20,
-  },
-
-  likesRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    marginBottom: 4,
-  },
-  likesAvatars: {
-    flexDirection: "row",
-    marginRight: 8,
-  },
-  likeAvatar: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-  },
-  likeAvatarOverlap: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginLeft: -6,
-  },
-
-  likesText: {
-    fontSize: 13,
-  },
-
-  caption: {
-    paddingHorizontal: 12,
-    marginTop: 4,
-    fontSize: 13,
-  },
-  comments: {
-    paddingHorizontal: 12,
-    marginTop: 4,
-    color: "#777",
-    fontSize: 13,
-  },
-  comment: {
-    paddingHorizontal: 12,
-    marginTop: 2,
-    fontSize: 13,
-  },
-  time: {
-    paddingHorizontal: 12,
-    marginTop: 6,
-    fontSize: 11,
-    color: "#999",
-    marginBottom: 10,
-  },
-  bold: {
-    fontWeight: "600",
-  },
-
-  bottomNav: {
-    height: 58,
-    borderTopWidth: 1,
-    borderTopColor: "#e5e5e5",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-around",
-    backgroundColor: "#fff",
-  },
-  navIcon: {
-    fontSize: 22,
-  },
-
-  alertBtn: {
-    height: 50,
-    marginHorizontal: 12,
-    marginBottom: 6,
-    borderRadius: 10,
-    backgroundColor: "#000",
-    alignItems: "center",
     justifyContent: "center",
+    gap: 6,
   },
-  alertBtnText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "700",
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#D0D0D0",
+  },
+  dotActive: {
+    backgroundColor: "#111",
   },
 });
