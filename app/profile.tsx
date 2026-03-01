@@ -1,6 +1,9 @@
+import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useMemo, useState } from "react";
 import {
   FlatList,
+  Image,
   Platform,
   Pressable,
   SafeAreaView,
@@ -9,21 +12,41 @@ import {
   Text,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { router } from "expo-router";
 import BottomNav from "../components/BottomNav";
 
 type TabKey = "grid" | "reels" | "tagged" | "saved";
+
+const profileImage = require("../assets/images/profile.png");
+
+const postImages = [
+  require("../assets/images/reels1.jpg"),
+  require("../assets/images/reels2.jpg"),
+  require("../assets/images/reels3.jpg"),
+  require("../assets/images/reels4.jpg"),
+  require("../assets/images/reels5.jpg"),
+  require("../assets/images/reels6.jpg"),
+];
+
+const highlightImages = [
+  require("../assets/images/reels1.jpg"),
+  require("../assets/images/reels2.jpg"),
+  require("../assets/images/reels3.jpg"),
+  require("../assets/images/reels4.jpg"),
+  require("../assets/images/reels5.jpg"),
+];
+
+const followedByAvatar = require("../assets/images/reels6.jpg");
 
 export default function ProfileScreen() {
   const [isFollowing, setIsFollowing] = useState(true);
   const [activeTab, setActiveTab] = useState<TabKey>("grid");
 
-  // Empty grid placeholders (no images)
-  const gridData = useMemo(
-    () => Array.from({ length: 24 }).map((_, i) => ({ id: String(i + 1) })),
-    []
-  );
+  const gridData = useMemo(() => {
+    return Array.from({ length: 24 }).map((_, i) => ({
+      id: String(i + 1),
+      source: postImages[i % postImages.length],
+    }));
+  }, []);
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -38,10 +61,10 @@ export default function ProfileScreen() {
         <Text style={styles.headerTitle}>karan__pabla</Text>
 
         <View style={styles.headerRight}>
-          <Pressable style={styles.headerIcon} onPress={() => {}}>
+          <Pressable style={styles.headerIcon} onPress={() => { }}>
             <Ionicons name="notifications-outline" size={22} color="#111" />
           </Pressable>
-          <Pressable style={styles.headerIcon} onPress={() => {}}>
+          <Pressable style={styles.headerIcon} onPress={() => { }}>
             <Ionicons name="ellipsis-horizontal" size={22} color="#111" />
           </Pressable>
         </View>
@@ -50,8 +73,8 @@ export default function ProfileScreen() {
       {/* Profile top block */}
       <View style={styles.topBlock}>
         <View style={styles.row}>
-          {/* Profile photo placeholder */}
-          <View style={styles.profilePhoto} />
+          {/* ✅ Profile photo */}
+          <Image source={profileImage} style={styles.profilePhoto} />
 
           {/* Stats */}
           <View style={styles.stats}>
@@ -77,7 +100,18 @@ export default function ProfileScreen() {
 
         {/* Followed by */}
         <View style={styles.followedByRow}>
-          <View style={styles.followedAvatar} />
+          {/* ✅ Clickable avatar */}
+          <Pressable
+            onPress={() =>
+              router.push({
+                pathname: "/profile",
+                params: { user: "sahilpreetsingh__" },
+              })
+            }
+          >
+            <Image source={followedByAvatar} style={styles.followedAvatar} />
+          </Pressable>
+
           <Text style={styles.followedText}>
             Followed by <Text style={styles.bold}>sahilpreetsingh__</Text>
           </Text>
@@ -100,24 +134,24 @@ export default function ProfileScreen() {
           </Pressable>
         </View>
 
-        {/* Highlights */}
+        {/* Highlights (con imágenes) */}
         <View style={styles.highlightsRow}>
           {[
-            { id: "1", label: "👍🏻" },
-            { id: "2", label: "💸" },
-            { id: "3", label: "🇨🇦" },
-            { id: "4", label: "SAIT" },
-            { id: "5", label: "🙌🏻" },
-          ].map((h) => (
-            <View key={h.id} style={styles.highlightItem}>
-              <View style={styles.highlightCircle} />
+            { label: "👍🏻", img: highlightImages[0] },
+            { label: "💸", img: highlightImages[1] },
+            { label: "🇨🇦", img: highlightImages[2] },
+            { label: "SAIT", img: highlightImages[3] },
+            { label: "🙌🏻", img: highlightImages[4] },
+          ].map((h, idx) => (
+            <View key={idx} style={styles.highlightItem}>
+              <Image source={h.img} style={styles.highlightCircle} />
               <Text style={styles.highlightLabel}>{h.label}</Text>
             </View>
           ))}
         </View>
       </View>
 
-      {/* Tabs row (grid/reels/tagged/profile-like icon) */}
+      {/* Tabs row */}
       <View style={styles.tabRow}>
         <TabIcon
           active={activeTab === "grid"}
@@ -141,7 +175,7 @@ export default function ProfileScreen() {
         />
       </View>
 
-      {/* Grid */}
+      {/* Grid (con imágenes reales) */}
       <FlatList
         data={gridData}
         keyExtractor={(it) => it.id}
@@ -149,7 +183,9 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.gridContent}
         columnWrapperStyle={styles.gridRow}
-        renderItem={() => <View style={styles.gridItem} />}
+        renderItem={({ item }) => (
+          <Image source={item.source} style={styles.gridItem} />
+        )}
       />
 
       {/* Bottom nav */}
@@ -233,7 +269,7 @@ const styles = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: "#EAEAEA",
+    resizeMode: "cover",
   },
 
   stats: {
@@ -261,7 +297,7 @@ const styles = StyleSheet.create({
     width: 34,
     height: 34,
     borderRadius: 17,
-    backgroundColor: "#EAEAEA",
+    resizeMode: "cover",
   },
   followedText: { fontSize: 18, color: "#111" },
   bold: { fontWeight: "900" },
@@ -281,9 +317,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
   },
-  bigBtnActive: {
-    backgroundColor: "#EFEFEF",
-  },
+  bigBtnActive: { backgroundColor: "#EFEFEF" },
   bigBtnText: { fontSize: 18, fontWeight: "800", color: "#111" },
 
   highlightsRow: {
@@ -299,6 +333,7 @@ const styles = StyleSheet.create({
     borderWidth: 3,
     borderColor: "#DADADA",
     backgroundColor: "#F2F2F2",
+    resizeMode: "cover",
   },
   highlightLabel: { marginTop: 8, fontSize: 16, color: "#111", fontWeight: "700" },
 
@@ -331,13 +366,13 @@ const styles = StyleSheet.create({
   },
 
   gridContent: {
-    paddingBottom: 58 + 16, // keep grid above bottom nav
+    paddingBottom: 58 + 16,
   },
   gridRow: { gap: GAP, paddingHorizontal: GAP },
   gridItem: {
     flex: 1,
     aspectRatio: 1,
     marginBottom: GAP,
-    backgroundColor: "#E9E9E9",
+    resizeMode: "cover",
   },
 });
