@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
-  FlatList,
+  Animated,
+  Dimensions,
   Image,
   Platform,
   Pressable,
@@ -13,6 +14,7 @@ import {
   View,
 } from "react-native";
 import BottomNav from "../components/BottomNav";
+import { setPosts } from "../lib/postStore";
 
 type TabKey = "grid" | "reels" | "tagged" | "saved";
 
@@ -24,7 +26,6 @@ const postImages = [
   require("../assets/images/reels3.jpg"),
   require("../assets/images/reels4.jpg"),
   require("../assets/images/reels5.jpg"),
-  require("../assets/images/reels6.jpg"),
 ];
 
 const highlightImages = [
@@ -37,21 +38,85 @@ const highlightImages = [
 
 const followedByAvatar = require("../assets/images/reels6.jpg");
 
-export default function ProfileScreen() {
-  const [isFollowing, setIsFollowing] = useState(true);
-  const [activeTab, setActiveTab] = useState<TabKey>("grid");
+const GAP = 2;
+const SCREEN_W = Dimensions.get("window").width;
 
+const TILE = (SCREEN_W - GAP * 4) / 3;
+
+export default function ProfileScreen() {
+  const [isFollowing, setIsFollowingState] = useState(true);
+  const [activeTab, setActiveTab] = useState<TabKey>("grid");
   const gridData = useMemo(() => {
-    return Array.from({ length: 24 }).map((_, i) => ({
+    return postImages.map((src, i) => ({
       id: String(i + 1),
-      source: postImages[i % postImages.length],
+      source: src,
     }));
   }, []);
 
-  return (
-    <SafeAreaView style={styles.safe}>
-      <StatusBar barStyle="dark-content" />
+  
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const [tabsY, setTabsY] = useState(0);
+  const [showStickyTabs, setShowStickyTabs] = useState(false);
 
+  const onTabsLayout = (e: any) => {
+    setTabsY(e.nativeEvent.layout.y);
+  };
+
+  const handleScroll = Animated.event(
+    [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+    {
+      useNativeDriver: false,
+      listener: (ev: any) => {
+        const y = (ev.nativeEvent as { contentOffset: { y: number } }).contentOffset.y;
+        if (y >= tabsY && !showStickyTabs) setShowStickyTabs(true);
+        if (y < tabsY && showStickyTabs) setShowStickyTabs(false);
+      },
+    }
+  );
+
+  const openPostViewer = (index: number) => {
+    setPosts(
+      gridData.map((p) => ({
+        uri: p.source,
+        key: p.id,
+        id: p.id,
+        source: p.source,
+        username: "karan__pabla",
+        location: "",
+        caption: "",
+      }))
+    );
+
+    router.push({ pathname: "/page", params: { index: String(index) } });
+  };
+
+  const TabsBar = () => (
+    <View style={styles.tabRow}>
+      <TabIcon
+        active={activeTab === "grid"}
+        onPress={() => setActiveTab("grid")}
+        name="grid-outline"
+      />
+      <TabIcon
+        active={activeTab === "reels"}
+        onPress={() => setActiveTab("reels")}
+        name="play-circle-outline"
+      />
+      <TabIcon
+        active={activeTab === "tagged"}
+        onPress={() => setActiveTab("tagged")}
+        name="repeat-outline"
+      />
+      <TabIcon
+        active={activeTab === "saved"}
+        onPress={() => setActiveTab("saved")}
+        name="person-outline"
+      />
+    </View>
+  );
+
+  const ProfileHeader = (
+    <View>
       {/* Top header */}
       <View style={styles.header}>
         <Pressable style={styles.headerIcon} onPress={() => router.back()}>
@@ -61,22 +126,20 @@ export default function ProfileScreen() {
         <Text style={styles.headerTitle}>karan__pabla</Text>
 
         <View style={styles.headerRight}>
-          <Pressable style={styles.headerIcon} onPress={() => { }}>
+          <Pressable style={styles.headerIcon} onPress={() => {}}>
             <Ionicons name="notifications-outline" size={22} color="#111" />
           </Pressable>
-          <Pressable style={styles.headerIcon} onPress={() => { }}>
+          <Pressable style={styles.headerIcon} onPress={() => {}}>
             <Ionicons name="ellipsis-horizontal" size={22} color="#111" />
           </Pressable>
         </View>
       </View>
 
-      {/* Profile top block */}
+      {}
       <View style={styles.topBlock}>
         <View style={styles.row}>
-          {/* ✅ Profile photo */}
           <Image source={profileImage} style={styles.profilePhoto} />
 
-          {/* Stats */}
           <View style={styles.stats}>
             <Stat value="2" label="posts" />
             <Stat value="475" label="followers" />
@@ -84,7 +147,7 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Name + bio */}
+        {}
         <View style={styles.bioBlock}>
           <Text style={styles.displayName}>ਕਰਨਦੀਪ ਸਿੰਘ</Text>
 
@@ -98,9 +161,8 @@ export default function ProfileScreen() {
           <Text style={styles.handle}>@ karan__pabla</Text>
         </View>
 
-        {/* Followed by */}
+        {}
         <View style={styles.followedByRow}>
-          {/* ✅ Clickable avatar */}
           <Pressable
             onPress={() =>
               router.push({
@@ -121,7 +183,7 @@ export default function ProfileScreen() {
         <View style={styles.btnRow}>
           <Pressable
             style={[styles.bigBtn, isFollowing && styles.bigBtnActive]}
-            onPress={() => setIsFollowing((v) => !v)}
+            onPress={() => setIsFollowingState((v) => !v)}
           >
             <Text style={styles.bigBtnText}>
               {isFollowing ? "Following" : "Follow"}
@@ -129,12 +191,15 @@ export default function ProfileScreen() {
             <Ionicons name="chevron-down" size={16} color="#111" />
           </Pressable>
 
-          <Pressable style={styles.bigBtn} onPress={() => router.replace("/send")}>
+          <Pressable
+            style={styles.bigBtn}
+            onPress={() => router.replace("/send")}
+          >
             <Text style={styles.bigBtnText}>Message</Text>
           </Pressable>
         </View>
 
-        {/* Highlights (con imágenes) */}
+        {/* Highlights */}
         <View style={styles.highlightsRow}>
           {[
             { label: "👍🏻", img: highlightImages[0] },
@@ -151,44 +216,42 @@ export default function ProfileScreen() {
         </View>
       </View>
 
-      {/* Tabs row */}
-      <View style={styles.tabRow}>
-        <TabIcon
-          active={activeTab === "grid"}
-          onPress={() => setActiveTab("grid")}
-          name="grid-outline"
-        />
-        <TabIcon
-          active={activeTab === "reels"}
-          onPress={() => setActiveTab("reels")}
-          name="play-circle-outline"
-        />
-        <TabIcon
-          active={activeTab === "tagged"}
-          onPress={() => setActiveTab("tagged")}
-          name="repeat-outline"
-        />
-        <TabIcon
-          active={activeTab === "saved"}
-          onPress={() => setActiveTab("saved")}
-          name="person-outline"
-        />
+      {}
+      <View onLayout={onTabsLayout}>
+        <TabsBar />
       </View>
+    </View>
+  );
 
-      {/* Grid (con imágenes reales) */}
-      <FlatList
+  return (
+    <SafeAreaView style={styles.safe}>
+      <StatusBar barStyle="dark-content" />
+
+      {}
+      {showStickyTabs ? (
+        <View style={styles.stickyTabs}>
+          <TabsBar />
+        </View>
+      ) : null}
+
+      {}
+      <Animated.FlatList
         data={gridData}
         keyExtractor={(it) => it.id}
         numColumns={3}
         showsVerticalScrollIndicator={false}
+        ListHeaderComponent={ProfileHeader}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         contentContainerStyle={styles.gridContent}
         columnWrapperStyle={styles.gridRow}
-        renderItem={({ item }) => (
-          <Image source={item.source} style={styles.gridItem} />
+        renderItem={({ item, index }) => (
+          <Pressable onPress={() => openPostViewer(index)}>
+            <Image source={item.source} style={styles.gridItem} />
+          </Pressable>
         )}
       />
 
-      {/* Bottom nav */}
       <BottomNav />
     </SafeAreaView>
   );
@@ -219,8 +282,6 @@ function TabIcon({
     </Pressable>
   );
 }
-
-const GAP = 2;
 
 const styles = StyleSheet.create({
   safe: {
@@ -282,7 +343,12 @@ const styles = StyleSheet.create({
   statLabel: { marginTop: 2, fontSize: 16, color: "#111" },
 
   bioBlock: { marginTop: 10 },
-  displayName: { fontSize: 18, fontWeight: "800", color: "#111", marginBottom: 6 },
+  displayName: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#111",
+    marginBottom: 6,
+  },
   bioLine: { fontSize: 18, color: "#111", marginTop: 2 },
   link: { color: "#1D4ED8", fontWeight: "700" },
   handle: { marginTop: 12, fontSize: 22, fontWeight: "900", color: "#111" },
@@ -335,9 +401,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F2F2",
     resizeMode: "cover",
   },
-  highlightLabel: { marginTop: 8, fontSize: 16, color: "#111", fontWeight: "700" },
+  highlightLabel: {
+    marginTop: 8,
+    fontSize: 16,
+    color: "#111",
+    fontWeight: "700",
+  },
 
   tabRow: {
+    backgroundColor: "#fff",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-around",
@@ -365,14 +437,26 @@ const styles = StyleSheet.create({
     backgroundColor: "transparent",
   },
 
+  
+  stickyTabs: {
+    position: "absolute",
+    top: Platform.OS === "android" ? (StatusBar.currentHeight ?? 0) : 0,
+    left: 0,
+    right: 0,
+    zIndex: 50,
+  },
+
   gridContent: {
     paddingBottom: 58 + 16,
+    paddingHorizontal: GAP,
   },
-  gridRow: { gap: GAP, paddingHorizontal: GAP },
-  gridItem: {
-    flex: 1,
-    aspectRatio: 1,
+  gridRow: {
+    gap: GAP,
     marginBottom: GAP,
+  },
+  gridItem: {
+    width: TILE,
+    height: TILE,
     resizeMode: "cover",
   },
 });

@@ -1,41 +1,47 @@
-import React, { useMemo } from "react";
-import { View, StyleSheet, SafeAreaView, TextInput, FlatList, Image, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import BottomNav from "../components/BottomNav";
+import React, { useMemo } from "react";
 import { router } from "expo-router";
+import {
+  FlatList,
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  TextInput,
+  View,
+} from "react-native";
+import BottomNav from "../components/BottomNav";
 import { setPosts } from "../lib/postStore";
+import { imageMap } from "../lib/images";
 
-type GridItem = { id: string; uri: string };
+type GridItem = { id: string; key?: string };
 
 export default function SearchScreen() {
+  const keys = ["reels1", "reels2", "reels3", "reels4", "reels5", "reels6"];
+
+  
   const data: GridItem[] = useMemo(
     () =>
-      Array.from({ length: 45 }).map((_, i) => ({
+      Array.from({ length: 30 }).map((_, i) => ({
         id: String(i + 1),
-        uri: `https://picsum.photos/seed/explore-${i + 1}/800/800`,
+        key: keys[i] ?? undefined,
       })),
     []
   );
 
-  const posts = useMemo(
-    () =>
-      data.map((x) => ({
-        id: x.id,
-        uri: x.uri,
-        username: "ootd_everyday",
-        location: "Explore",
-        caption: "Explore post ✨",
-      })),
-    [data]
-  );
-
   return (
     <SafeAreaView style={styles.safe}>
+      {}
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color="#666" />
-        <TextInput placeholder="Search with Meta AI" placeholderTextColor="#777" style={styles.searchInput} />
+        <TextInput
+          placeholder="Search"
+          placeholderTextColor="#777"
+          style={styles.searchInput}
+        />
       </View>
 
+      {}
       <FlatList
         data={data}
         keyExtractor={(it) => it.id}
@@ -47,11 +53,25 @@ export default function SearchScreen() {
           <Pressable
             style={styles.gridItem}
             onPress={() => {
-              setPosts(posts);
+              setPosts(
+                data.map((d) => ({
+                  uri: d.key ? imageMap[d.key] : null,
+                  id: d.id,
+                  key: d.key,
+                  source: d.key ? imageMap[d.key] : null,
+                  username: "explore",
+                  location: "",
+                  caption: "",
+                }))
+              );
               router.push({ pathname: "/page", params: { index: String(index) } });
             }}
           >
-            <Image source={{ uri: item.uri }} style={styles.gridImage} />
+            {item.key ? (
+              <Image source={imageMap[item.key]} style={styles.gridImage} />
+            ) : (
+              <View style={styles.gridEmpty} />
+            )}
           </Pressable>
         )}
       />
@@ -80,6 +100,12 @@ const styles = StyleSheet.create({
 
   gridContent: { paddingBottom: 58 + 16 },
   gridRow: { gap: GAP, paddingHorizontal: GAP },
-  gridItem: { flex: 1, aspectRatio: 1, marginBottom: GAP, backgroundColor: "#ddd" },
+  gridItem: {
+    flex: 1,
+    aspectRatio: 1,
+    marginBottom: GAP,
+    backgroundColor: "#ddd",
+  },
   gridImage: { width: "100%", height: "100%" },
+  gridEmpty: { width: "100%", height: "100%", backgroundColor: "#e5e5e5" },
 });

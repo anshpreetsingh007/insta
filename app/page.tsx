@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+
+import React, { useEffect, useMemo, useRef } from "react";
 import {
   Dimensions,
   FlatList,
@@ -9,8 +10,6 @@ import {
   StyleSheet,
   Text,
   View,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
@@ -18,13 +17,12 @@ import { getPosts, Post } from "../lib/postStore";
 
 const { width } = Dimensions.get("window");
 
-export default function PostViewer() {
+export default function Page() {
   const { index } = useLocalSearchParams<{ index?: string }>();
   const startIndex = Math.max(0, Number(index ?? 0) || 0);
 
   const posts = useMemo(() => getPosts(), []);
   const listRef = useRef<FlatList<Post>>(null);
-  const [activeIndex, setActiveIndex] = useState(startIndex);
 
   useEffect(() => {
     if (posts.length > 0) {
@@ -33,11 +31,6 @@ export default function PostViewer() {
       });
     }
   }, [startIndex, posts.length]);
-
-  const onMomentumEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-    setActiveIndex(newIndex);
-  };
 
   if (!posts || posts.length === 0) {
     return (
@@ -54,7 +47,7 @@ export default function PostViewer() {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Top bar */}
+      {}
       <View style={styles.topBar}>
         <Pressable style={styles.topBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={26} color="#111" />
@@ -65,60 +58,65 @@ export default function PostViewer() {
         <View style={styles.topBtn} />
       </View>
 
+      {}
       <FlatList
         ref={listRef}
         data={posts}
         horizontal
         pagingEnabled
-        keyExtractor={(item) => item.id}
         showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onMomentumEnd}
+        keyExtractor={(item) => item.id}
         getItemLayout={(_, i) => ({ length: width, offset: width * i, index: i })}
-        renderItem={({ item }) => <PostCard post={item} />}
-      />
+        renderItem={({ item }) => (
+          <View style={{ width, backgroundColor: "#fff" }}>
+            {}
+            <View style={styles.postHeader}>
+              <View style={styles.postLeft}>
+                <Image
+                  source={require("../assets/images/profile.png")}
+                  style={styles.avatar}
+                />
+                <View>
+                  <Text style={styles.postUsername}>
+                    {item.username ?? "user"}
+                  </Text>
+                  <Text style={styles.location}>{item.location ?? " "}</Text>
+                </View>
+              </View>
 
-      {/* Dots (optional) */}
-      <View style={styles.dots}>
-        {posts.slice(0, 12).map((_, i) => (
-          <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
-        ))}
-      </View>
-    </SafeAreaView>
-  );
-}
+              <Ionicons name="ellipsis-horizontal" size={20} color="#111" />
+            </View>
 
-function PostCard({ post }: { post: Post }) {
-  return (
-    <View style={{ width, backgroundColor: "#fff" }}>
-      <View style={styles.postHeader}>
-        <View style={styles.postLeft}>
-          <Image source={require("../assets/images/profile.png")} style={styles.avatar} />
-          <View>
-            <Text style={styles.postUsername}>{post.username ?? "ootd_everyday"}</Text>
-            <Text style={styles.location}>{post.location ?? "via frenchie_fry39"}</Text>
+            {}
+            {item.source ? (
+              <Image source={item.source} style={styles.postImage} />
+            ) : item.uri ? (
+              <Image source={{ uri: item.uri }} style={styles.postImage} />
+            ) : (
+              <View style={styles.placeholder} />
+            )}
+
+            {}
+            <View style={styles.actionsRow}>
+              <View style={styles.actionsLeft}>
+                <Ionicons name="heart-outline" size={26} color="#111" />
+                <Ionicons name="chatbubble-outline" size={24} color="#111" />
+                <Ionicons name="paper-plane-outline" size={24} color="#111" />
+              </View>
+              <Ionicons name="bookmark-outline" size={24} color="#111" />
+            </View>
+
+            {}
+            <Text style={styles.caption}>
+              <Text style={styles.bold}>{item.username ?? "user"}</Text>{" "}
+              {item.caption ?? ""}
+            </Text>
+
+            <View style={{ height: 40 }} />
           </View>
-        </View>
-        <Ionicons name="ellipsis-horizontal" size={20} color="#111" />
-      </View>
-
-      <Image source={{ uri: post.uri }} style={styles.postImage} />
-
-      <View style={styles.actionsRow}>
-        <View style={styles.actionsLeft}>
-          <Ionicons name="heart-outline" size={26} color="#111" />
-          <Ionicons name="chatbubble-outline" size={24} color="#111" />
-          <Ionicons name="paper-plane-outline" size={24} color="#111" />
-        </View>
-        <Ionicons name="bookmark-outline" size={24} color="#111" />
-      </View>
-
-      <Text style={styles.caption}>
-        <Text style={styles.bold}>{post.username ?? "frenchie_fry39"}</Text>{" "}
-        {post.caption ?? "Fresh shot on a sunny day! ✨"}
-      </Text>
-
-      <View style={{ height: 40 }} />
-    </View>
+        )}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -148,7 +146,17 @@ const styles = StyleSheet.create({
   postUsername: { fontWeight: "700", color: "#111" },
   location: { fontSize: 12, color: "#666", marginTop: 1 },
 
-  postImage: { width: "100%", height: 420, resizeMode: "cover", backgroundColor: "#eee" },
+  postImage: {
+    width: "100%",
+    height: 420,
+    resizeMode: "cover",
+    backgroundColor: "#eee",
+  },
+  placeholder: {
+    width: "100%",
+    height: 420,
+    backgroundColor: "#e5e5e5",
+  },
 
   actionsRow: {
     flexDirection: "row",
@@ -161,15 +169,4 @@ const styles = StyleSheet.create({
 
   caption: { paddingHorizontal: 12, fontSize: 14, color: "#111" },
   bold: { fontWeight: "700" },
-
-  dots: {
-    position: "absolute",
-    bottom: 10,
-    width: "100%",
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 6,
-  },
-  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#D0D0D0" },
-  dotActive: { backgroundColor: "#111" },
 });

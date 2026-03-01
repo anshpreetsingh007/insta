@@ -1,6 +1,10 @@
 export type Post = {
   id: string;
-  uri: string;
+
+  
+  source?: any;
+  uri?: string; 
+
   username?: string;
   location?: string;
   caption?: string;

@@ -1,14 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo, useState } from "react";
 import {
-    FlatList,
-    Image,
-    Pressable,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  FlatList,
+  Image,
+  Pressable,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 import BottomNav from "../components/BottomNav";
 
@@ -16,8 +16,19 @@ type Thread = {
   id: string;
   name: string;
   status: string;
-  avatar: string;
+  avatar: any; // ✅ local require(...)
 };
+
+// ✅ Use ONLY local assets you already have
+const avatarAssets = [
+  require("../assets/images/profile.png"),
+  require("../assets/images/reels1.jpg"),
+  require("../assets/images/reels2.jpg"),
+  require("../assets/images/reels3.jpg"),
+  require("../assets/images/reels4.jpg"),
+  require("../assets/images/reels5.jpg"),
+  require("../assets/images/reels6.jpg"),
+];
 
 export default function SendScreen() {
   const [tab, setTab] = useState<"Primary" | "Requests" | "General">("Primary");
@@ -25,7 +36,7 @@ export default function SendScreen() {
   const threads: Thread[] = useMemo(
     () =>
       [
-        { name: "Karamdeep Singh", status: "Sent 56m ago" },
+        { name: "Karandeep Singh", status: "Sent 56m ago" },
         { name: "Joti 🍁", status: "Active 7h ago" },
         { name: "infinity_pc_games", status: "Ok · 1w" },
         { name: "Mariano", status: "Sent last week" },
@@ -35,14 +46,14 @@ export default function SendScreen() {
         id: String(i + 1),
         name: t.name,
         status: t.status,
-        avatar: `https://picsum.photos/seed/dm-${i + 1}/200/200`,
+        avatar: avatarAssets[i % avatarAssets.length], 
       })),
     []
   );
 
   return (
     <SafeAreaView style={styles.safe}>
-      {/* Header */}
+      {}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>ansh__khaira</Text>
         <View style={styles.headerRight}>
@@ -51,7 +62,7 @@ export default function SendScreen() {
         </View>
       </View>
 
-      {/* Search */}
+      {}
       <View style={styles.searchWrap}>
         <Ionicons name="search-outline" size={18} color="#666" />
         <TextInput
@@ -61,14 +72,26 @@ export default function SendScreen() {
         />
       </View>
 
-      {/* Tabs */}
+      {}
       <View style={styles.tabs}>
-        <TabBtn label="Primary" active={tab === "Primary"} onPress={() => setTab("Primary")} />
-        <TabBtn label="Requests" active={tab === "Requests"} onPress={() => setTab("Requests")} />
-        <TabBtn label="General" active={tab === "General"} onPress={() => setTab("General")} />
+        <TabBtn
+          label="Primary"
+          active={tab === "Primary"}
+          onPress={() => setTab("Primary")}
+        />
+        <TabBtn
+          label="Requests"
+          active={tab === "Requests"}
+          onPress={() => setTab("Requests")}
+        />
+        <TabBtn
+          label="General"
+          active={tab === "General"}
+          onPress={() => setTab("General")}
+        />
       </View>
 
-      {/* Threads */}
+      {}
       <FlatList
         data={threads}
         keyExtractor={(it) => it.id}
@@ -76,11 +99,14 @@ export default function SendScreen() {
         contentContainerStyle={{ paddingBottom: 58 + 16 }}
         renderItem={({ item }) => (
           <Pressable style={styles.thread}>
-            <Image source={{ uri: item.avatar }} style={styles.avatar} />
+            {}
+            <Image source={item.avatar} style={styles.avatar} />
+
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{item.name}</Text>
               <Text style={styles.status}>{item.status}</Text>
             </View>
+
             <Ionicons name="camera-outline" size={26} color="#777" />
           </Pressable>
         )}
