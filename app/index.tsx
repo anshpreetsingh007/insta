@@ -22,7 +22,7 @@ export default function HomeScreen() {
           <Ionicons name="add" size={26} color="#111" />
         </Pressable>
 
-        <Text style={styles.logo}>Instagram</Text>
+        <Text style={styles.logo}>𝓘𝓷𝓼𝓽𝓪𝓰𝓻𝓪𝓶</Text>
 
         <Pressable style={styles.topIcon} onPress={() => {}}>
           <Ionicons name="heart-outline" size={26} color="#111" />

@@ -1,25 +1,19 @@
-<<<<<<< HEAD
-
-import { router } from "expo-router";
-import React from "react";
-=======
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
->>>>>>> 009160f228362359df332bd9f21a3f0b5882d7cf
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Dimensions,
   FlatList,
   Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Pressable,
   SafeAreaView,
   StatusBar,
   StyleSheet,
   Text,
   View,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
 } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
 import { getPosts, Post } from "../lib/postStore";
 
 const { width } = Dimensions.get("window");
@@ -30,11 +24,9 @@ export default function PostViewer() {
 
   const posts = useMemo(() => getPosts(), []);
   const listRef = useRef<FlatList<Post>>(null);
-
   const [activeIndex, setActiveIndex] = useState(startIndex);
 
   useEffect(() => {
-    // Jump to tapped image
     if (posts.length > 0) {
       requestAnimationFrame(() => {
         listRef.current?.scrollToIndex({ index: startIndex, animated: false });
@@ -62,7 +54,7 @@ export default function PostViewer() {
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" />
 
-      {/* Top bar (Instagram-style) */}
+      {/* Top bar */}
       <View style={styles.topBar}>
         <Pressable style={styles.topBtn} onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={26} color="#111" />
@@ -73,7 +65,6 @@ export default function PostViewer() {
         <View style={styles.topBtn} />
       </View>
 
-      {/* Swipeable posts */}
       <FlatList
         ref={listRef}
         data={posts}
@@ -86,7 +77,7 @@ export default function PostViewer() {
         renderItem={({ item }) => <PostCard post={item} />}
       />
 
-      {/* Optional: dots indicator */}
+      {/* Dots (optional) */}
       <View style={styles.dots}>
         {posts.slice(0, 12).map((_, i) => (
           <View key={i} style={[styles.dot, i === activeIndex && styles.dotActive]} />
@@ -99,13 +90,9 @@ export default function PostViewer() {
 function PostCard({ post }: { post: Post }) {
   return (
     <View style={{ width, backgroundColor: "#fff" }}>
-      {/* Post header */}
       <View style={styles.postHeader}>
         <View style={styles.postLeft}>
-          <Image
-            source={require("../assets/images/profile.png")}
-            style={styles.avatar}
-          />
+          <Image source={require("../assets/images/profile.png")} style={styles.avatar} />
           <View>
             <Text style={styles.postUsername}>{post.username ?? "ootd_everyday"}</Text>
             <Text style={styles.location}>{post.location ?? "via frenchie_fry39"}</Text>
@@ -114,10 +101,8 @@ function PostCard({ post }: { post: Post }) {
         <Ionicons name="ellipsis-horizontal" size={20} color="#111" />
       </View>
 
-      {/* Post image */}
       <Image source={{ uri: post.uri }} style={styles.postImage} />
 
-      {/* Actions */}
       <View style={styles.actionsRow}>
         <View style={styles.actionsLeft}>
           <Ionicons name="heart-outline" size={26} color="#111" />
@@ -127,7 +112,6 @@ function PostCard({ post }: { post: Post }) {
         <Ionicons name="bookmark-outline" size={24} color="#111" />
       </View>
 
-      {/* Caption */}
       <Text style={styles.caption}>
         <Text style={styles.bold}>{post.username ?? "frenchie_fry39"}</Text>{" "}
         {post.caption ?? "Fresh shot on a sunny day! ✨"}
@@ -149,19 +133,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: "#E6E6E6",
   },
-  topBtn: {
-    width: 44,
-    height: 44,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  topTitle: {
-    flex: 1,
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#111",
-  },
+  topBtn: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  topTitle: { flex: 1, textAlign: "center", fontSize: 16, fontWeight: "700", color: "#111" },
 
   postHeader: {
     flexDirection: "row",
@@ -175,12 +148,7 @@ const styles = StyleSheet.create({
   postUsername: { fontWeight: "700", color: "#111" },
   location: { fontSize: 12, color: "#666", marginTop: 1 },
 
-  postImage: {
-    width: "100%",
-    height: 420,
-    resizeMode: "cover",
-    backgroundColor: "#eee",
-  },
+  postImage: { width: "100%", height: 420, resizeMode: "cover", backgroundColor: "#eee" },
 
   actionsRow: {
     flexDirection: "row",
@@ -202,13 +170,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 6,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: "#D0D0D0",
-  },
-  dotActive: {
-    backgroundColor: "#111",
-  },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: "#D0D0D0" },
+  dotActive: { backgroundColor: "#111" },
 });
