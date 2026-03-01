@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function HomeScreen() {
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      {/* Top bar */}
+      
       <View style={styles.topBar}>
         <Pressable style={styles.topIcon} onPress={() => {}}>
           <Ionicons name="add" size={26} color="#111" />
@@ -33,7 +33,7 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {/* Stories */}
+       
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -49,7 +49,6 @@ export default function HomeScreen() {
           <Story label="kirpal_sanghe" img={require("../assets/images/like3.jpg")} />
         </ScrollView>
 
-        {/* Post header */}
         <View style={styles.postHeader}>
           <View style={styles.postLeft}>
             <Image
@@ -64,13 +63,13 @@ export default function HomeScreen() {
           <Text style={styles.postMenu}>•••</Text>
         </View>
 
-        {/* Post image */}
+      
         <Image
           source={require("../assets/images/webdeb.png")}
           style={styles.postImage}
         />
 
-        {/* Actions row */}
+       
         <View style={styles.actionsRow}>
           <View style={styles.actionsLeft}>
             <Ionicons name="heart-outline" size={26} color="#111" />
@@ -81,7 +80,7 @@ export default function HomeScreen() {
           <Ionicons name="bookmark-outline" size={24} color="#111" />
         </View>
 
-        {/* Likes */}
+       
         <View style={styles.likesRow}>
           <View style={styles.likesAvatars}>
             <Image
@@ -104,7 +103,7 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {/* Caption */}
+       
         <Text style={styles.caption}>
           <Text style={styles.bold}>frenchie_fry39</Text> Fresh shot on a sunny
           day! ✨
@@ -122,7 +121,7 @@ export default function HomeScreen() {
 
         <Text style={styles.time}>1 day ago</Text>
 
-        {/* Alert Button */}
+       
         <Pressable
           style={styles.alertBtn}
           onPress={() =>
@@ -134,7 +133,7 @@ export default function HomeScreen() {
           <Text style={styles.alertBtnText}>Alert</Text>
         </Pressable>
 
-        {/* Spacer so content doesn't hide behind nav */}
+        {}
         <View style={{ height: 16 }} />
       </ScrollView>
 
