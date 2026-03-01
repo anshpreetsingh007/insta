@@ -47,15 +47,15 @@ export default function ReelsScreen() {
             {/* Right icons */}
             <View style={styles.rightActions}>
               <Pressable style={styles.actionBtn}>
-                <Ionicons name="heart-outline" size={28} color="#fff" />
+                <Ionicons name="heart-outline" size={34} color="#fff" />
               </Pressable>
 
               <Pressable style={styles.actionBtn}>
-                <Ionicons name="chatbubble-outline" size={26} color="#fff" />
+                <Ionicons name="chatbubble-outline" size={32} color="#fff" />
               </Pressable>
 
               <Pressable style={styles.actionBtn}>
-                <Ionicons name="paper-plane-outline" size={26} color="#fff" />
+                <Ionicons name="paper-plane-outline" size={32} color="#fff" />
               </Pressable>
             </View>
 
